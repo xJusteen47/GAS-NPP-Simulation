@@ -93,7 +93,8 @@ bool FLayeredMove_SyncMontageRootMotion::GenerateMove(const FMoverTickStartData&
 	// Scale it using animation curve
 	if (ExtractionData.Montage && ExtractionData.Montage->HasCurveData("RootMotionTranslationScale"))
 	{
-		const float LocScaleCurve = ExtractionData.Montage->EvaluateCurveData("RootMotionTranslationScale", ExtractionData.CurrentTime, false);
+		FAnimExtractContext RootMotionContext(static_cast<double>(ExtractionData.CurrentTime));
+		const float LocScaleCurve = ExtractionData.Montage->EvaluateCurveData("RootMotionTranslationScale", RootMotionContext, false);
 		LocalRootMotion.ScaleTranslation(LocScaleCurve);
 	}
 	// Convert Root motion to world root motion
@@ -104,17 +105,20 @@ bool FLayeredMove_SyncMontageRootMotion::GenerateMove(const FMoverTickStartData&
 	if (!Settings)
 	{
 		OutProposedMove.LinearVelocity = FVector::ZeroVector;
-		OutProposedMove.AngularVelocity = FRotator::ZeroRotator;
+		OutProposedMove.AngularVelocityDegrees = FVector::ZeroVector;
 		MixMode = EMoveMixMode::AdditiveVelocity;
 		OutProposedMove.MixMode = MixMode;
 		return false;
 	}
+	
 	// Add Gravity velocity if montage doesn't have "Flying" curve and we are in air mode
-	const float FlyingMontage = ExtractionData.Montage ? ExtractionData.Montage->EvaluateCurveData("NoGravityRootMotion", ExtractionData.CurrentTime, false) : 0.f;
+	FAnimExtractContext RootMotionContext(static_cast<double>(ExtractionData.CurrentTime));
+	const float FlyingMontage = ExtractionData.Montage ? ExtractionData.Montage->EvaluateCurveData("NoGravityRootMotion", RootMotionContext, false) : 0.f;
 	if (StartState.SyncState.MovementMode == Settings->AirMovementModeName && FlyingMontage <= UE_KINDA_SMALL_NUMBER)
 	{
 		// if in air and not flying , if we have overrideZVelocity curve if so use its value, otherwise apply gravity acceleration
-		const float OverrideValue = ExtractionData.Montage->EvaluateCurveData("OverrideZVelocity", ExtractionData.CurrentTime, false);
+		FAnimExtractContext VelocityContext(static_cast<double>(ExtractionData.CurrentTime));
+		const float OverrideValue = ExtractionData.Montage->EvaluateCurveData("OverrideZVelocity", VelocityContext, false);
 		const float OverrideZ = ExtractionData.Montage ?  OverrideValue : 0.f;
 		if (OverrideZ > KINDA_SMALL_NUMBER)
 		{
@@ -126,10 +130,11 @@ bool FLayeredMove_SyncMontageRootMotion::GenerateMove(const FMoverTickStartData&
 			OutProposedMove.LinearVelocity +=  UMovementUtils::ComputeVelocityFromGravity(MoverComp->GetGravityAcceleration(), DeltaTime);
 		}
 	}
-	OutProposedMove.AngularVelocity = WorldRootMotion.GetRotation().Rotator() * (1.f / DeltaTime);
+	OutProposedMove.AngularVelocityDegrees = WorldRootMotion.GetRotation().Rotator().Euler() * (1.f / DeltaTime);
 
 	// if montage has curve additive root motion , Let movement mode take over the motion.
-	const float AdditiveMontage = ExtractionData.Montage ? ExtractionData.Montage->EvaluateCurveData("AdditiveRootMotion", ExtractionData.CurrentTime, false) : 0.f;
+	FAnimExtractContext Context(static_cast<double>(ExtractionData.CurrentTime));
+	const float AdditiveMontage = ExtractionData.Montage ? ExtractionData.Montage->EvaluateCurveData("AdditiveRootMotion", Context, false) : 0.f;
 	if (FMath::IsNearlyZero(AdditiveMontage))
 	{
 		MixMode = EMoveMixMode::OverrideVelocity;
@@ -137,7 +142,7 @@ bool FLayeredMove_SyncMontageRootMotion::GenerateMove(const FMoverTickStartData&
 	else
 	{
 		OutProposedMove.LinearVelocity = FVector::ZeroVector;
-		OutProposedMove.AngularVelocity = FRotator::ZeroRotator;
+		OutProposedMove.AngularVelocityDegrees = FVector::ZeroVector;
 		MixMode = EMoveMixMode::AdditiveVelocity;
 	}
 	OutProposedMove.MixMode = MixMode;

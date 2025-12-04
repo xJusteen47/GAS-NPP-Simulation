@@ -328,7 +328,8 @@ FTransform UNetMontageSimulator::GetSocketWorldTransformFromMontage(UAnimMontage
             {
                 FSkeletonPoseBoneIndex SkeletonBoneIndex(BoneIndex);
                 FTransform BoneLocal = FTransform::Identity;
-                Sequence->GetBoneTransform(BoneLocal, SkeletonBoneIndex, MontageTime, false);
+            	FAnimExtractContext ExtractionContext(static_cast<double>(MontageTime));
+                Sequence->GetBoneTransform(BoneLocal, SkeletonBoneIndex, ExtractionContext, false);
                 LocalChain.Add(BoneLocal);
 
                 BoneIndex = Skeleton->GetReferenceSkeleton().GetRawParentIndex(BoneIndex);

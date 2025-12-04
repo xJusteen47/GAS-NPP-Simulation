@@ -11,10 +11,11 @@ void UProjectilesSimulator::SimulationTick(const FAbilitySystemTimeStep& TimeSte
 	TickProjectiles(TimeStep);
 	// Sort projectiles , this might not be needed, but it's best for determinism , and will help with performance in other places
 	// like ShouldReconcile can directly check for indexes 1 to 1 without needing a second inner loop to find the correct projectile.
-	ActiveProjectiles.Sort([](const TObjectPtr<ASyncedProjectileBase>& A, const TObjectPtr<ASyncedProjectileBase>& B)
+	Algo::SortBy(ActiveProjectiles,[](const TObjectPtr<ASyncedProjectileBase>& Ptr)
 	{
-		return A->ProjectileData.ProjectileID < B->ProjectileData.ProjectileID;
+		return Ptr->ProjectileData.ProjectileID;
 	});
+
 	OutputState.CollectState(ActiveProjectiles,ProjectilesIDCount);
 }
 
