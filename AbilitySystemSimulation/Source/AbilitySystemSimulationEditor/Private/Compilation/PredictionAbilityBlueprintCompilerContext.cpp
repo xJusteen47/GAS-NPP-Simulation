@@ -2,6 +2,7 @@
 
 
 #include "Compilation/PredictionAbilityBlueprintCompilerContext.h"
+#include "Algo/Sort.h"
 
 #include "Abilities/NpGameplayAbility.h"
 #include "Framework/Notifications/NotificationManager.h"
@@ -311,7 +312,8 @@ void FPredictionAbilityBlueprintCompilerContext::CheckTasksNamesAndPrioritySort(
 		}
 
 		// finally sort tasks by priority , this is so tasks that should tick ,tick in priority
-		AbilityCDO->PredictionTasksInstances.Sort([](const TObjectPtr<UBasePredictionTask>& TaskA,const TObjectPtr<UBasePredictionTask>& TaskB)
+		// UE 5.8: TArray::Sort dereferences pointer elements, Algo::Sort passes the TObjectPtr as is.
+		Algo::Sort(AbilityCDO->PredictionTasksInstances, [](const TObjectPtr<UBasePredictionTask>& TaskA,const TObjectPtr<UBasePredictionTask>& TaskB)
 		{
 			if (TaskA->TaskTickPriority != TaskB->TaskTickPriority)
 			{

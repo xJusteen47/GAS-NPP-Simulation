@@ -387,7 +387,7 @@ void UNpGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
 			else
 			{
 				
-				AbilitySystemComponent->UpdateTagMap(ActivationOwnedTags,-1);
+				AbilitySystemComponent->UpdateTagMap(ActivationOwnedTags, -1, EGameplayTagReplicationState::None);
 			}
 			
 			if (IsBlockingOtherAbilities())
@@ -452,7 +452,7 @@ void UNpGameplayAbility::PreActivate(const FGameplayAbilitySpecHandle Handle,
 	}
 	else
 	{
-		Comp->UpdateTagMap(ActivationOwnedTags,1);
+		Comp->UpdateTagMap(ActivationOwnedTags, 1, EGameplayTagReplicationState::None);
 	}
 	
 	

@@ -382,57 +382,36 @@ public:
 	// ----------------------------------------------------------------------------------------------------------------
 #pragma region Gameplay Tags
 
-	FORCEINLINE virtual void SetTagMapCount(const FGameplayTag& Tag, int32 NewCount) override
+	// UE 5.8: tag functions take an EGameplayTagReplicationState. Tags are synced through Network Prediction,
+	// so GAS's own tag replication is always bypassed here (state forced to None).
+	FORCEINLINE virtual void SetTagMapCount(const FGameplayTag& Tag, int32 NewCount, EGameplayTagReplicationState TagRepState = EGameplayTagReplicationState::None) override
 	{
 		if (GetIsRestoringFrame())
 		{
 			return;
 		}
-		Super::SetTagMapCount(Tag, NewCount);
+		Super::SetTagMapCount(Tag, NewCount, EGameplayTagReplicationState::None);
 	}
-	FORCEINLINE virtual void UpdateTagMap(const FGameplayTag& BaseTag, int32 CountDelta) override
+	FORCEINLINE virtual void UpdateTagMap(const FGameplayTag& BaseTag, int32 CountDelta, EGameplayTagReplicationState TagRepState) override
 	{
 		if (GetIsRestoringFrame())
 		{
 			return;
 		}
-		Super::UpdateTagMap(BaseTag, CountDelta);
+		Super::UpdateTagMap(BaseTag, CountDelta, EGameplayTagReplicationState::None);
 	}
-	FORCEINLINE virtual void UpdateTagMap(const FGameplayTagContainer& Container, int32 CountDelta) override
+	FORCEINLINE virtual void UpdateTagMap(const FGameplayTagContainer& Container, int32 CountDelta, EGameplayTagReplicationState TagRepState) override
 	{
 		if (GetIsRestoringFrame())
 		{
 			return;
 		}
-		Super::UpdateTagMap(Container, CountDelta);
+		Super::UpdateTagMap(Container, CountDelta, EGameplayTagReplicationState::None);
 	}
 	// All Tags Are just replicated now, there are no special replicated/minimal replicated tags. now there special NonReplicated Tags
 	// Had To be added in Parent Class Directly.
-	FORCEINLINE virtual void AddReplicatedLooseGameplayTag(const FGameplayTag& GameplayTag) override
-	{
-		AddLooseGameplayTag(GameplayTag);
-	}
+	// UE 5.8 removed Add/RemoveReplicatedLooseGameplayTag(s); replication is selected through EGameplayTagReplicationState instead.
 
-	FORCEINLINE virtual void AddReplicatedLooseGameplayTags(const FGameplayTagContainer& GameplayTags) override
-	{
-		AddLooseGameplayTags(GameplayTags);
-	}
-
-	FORCEINLINE virtual void RemoveReplicatedLooseGameplayTag(const FGameplayTag& GameplayTag) override
-	{
-		RemoveLooseGameplayTag(GameplayTag);
-	}
-
-	FORCEINLINE virtual void RemoveReplicatedLooseGameplayTags(const FGameplayTagContainer& GameplayTags) override
-	{
-		RemoveLooseGameplayTags(GameplayTags);
-	}
-
-	FORCEINLINE virtual void SetReplicatedLooseGameplayTagCount(const FGameplayTag& GameplayTag, int32 NewCount) override
-	{
-		SetLooseGameplayTagCount(GameplayTag, NewCount);
-	}
-	
 	FORCEINLINE virtual void AddMinimalReplicationGameplayTag(const FGameplayTag& GameplayTag) override
 	{
 		AddLooseGameplayTag(GameplayTag);

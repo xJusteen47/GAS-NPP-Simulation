@@ -1028,8 +1028,14 @@ void UNpAbilitySystemComponent::GetLifetimeReplicatedProps(TArray<class FLifetim
 	DOREPLIFETIME_WITH_PARAMS_FAST(UAbilitySystemComponent, AvatarActor, Params);
 
 	Params.Condition = COND_ReplayOnly;
-	DOREPLIFETIME_WITH_PARAMS_FAST(UAbilitySystemComponent, ClientDebugStrings, Params);
-	DOREPLIFETIME_WITH_PARAMS_FAST(UAbilitySystemComponent, ServerDebugStrings, Params);
+	// UE 5.8 made the debug string arrays private, so register them through reflection.
+	for (const FName DebugStringsName : { FName(TEXT("ClientDebugStrings")), FName(TEXT("ServerDebugStrings")) })
+	{
+		if (const FProperty* DebugStringsProperty = UAbilitySystemComponent::StaticClass()->FindPropertyByName(DebugStringsName))
+		{
+			RegisterReplicatedLifetimeProperty(DebugStringsProperty, OutLifetimeProps, Params);
+		}
+	}
 	
 	// Network prediction Replication
 	DOREPLIFETIME( UNpAbilitySystemComponent, NetworkPredictionProxy);
